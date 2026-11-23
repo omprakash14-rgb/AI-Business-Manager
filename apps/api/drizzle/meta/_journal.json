@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795371102664,
+      "tag": "0000_slim_wraith",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795371754451,
+      "tag": "0001_magenta_ezekiel_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795372764974,
+      "tag": "0002_slimy_nightcrawler",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795373707445,
+      "tag": "0003_lucky_bloodscream",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795374374515,
+      "tag": "0004_tricky_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795375343301,
+      "tag": "0005_young_jocasta",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795376411349,
+      "tag": "0006_nifty_dazzler",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795377287648,
+      "tag": "0007_even_expediter",
+      "breakpoints": true
+    }
+  ]
+}

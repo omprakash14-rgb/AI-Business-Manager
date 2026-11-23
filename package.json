@@ -1,0 +1,19 @@
+{
+  "name": "ai-business-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unified AI-Powered Business Management SaaS Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@ai-business-manager/api",
+    "dev:web": "npm run dev --workspace=@ai-business-manager/web",
+    "dev": "node scripts/dev.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
