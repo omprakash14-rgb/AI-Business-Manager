@@ -34,12 +34,35 @@ export async function buildServer(): Promise<FastifyInstance> {
       // Allow requests with no origin (like mobile apps, curl, server-to-server)
       if (!origin) return cb(null, true);
 
-      // Support comma-separated origins or single origin
-      const allowedOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim());
-      if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      // Support comma-separated origins or single origin from configuration
+      const allowedOrigins = new Set(
+        env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+      );
+
+      // Helper to add sanitized HTTPS origin from Vercel environment variables
+      const addVercelOrigin = (host?: string) => {
+        if (!host) return;
+        const clean = host.trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+        if (clean) {
+          allowedOrigins.add(`https://${clean}`);
+        }
+      };
+
+      // Support exact current Vercel deployment hostname
+      addVercelOrigin(env.VERCEL_URL || process.env.VERCEL_URL);
+
+      // Support exact Vercel production hostname
+      addVercelOrigin(env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL);
+
+      // Support exact Vercel branch deployment hostname
+      addVercelOrigin(env.VERCEL_BRANCH_URL || process.env.VERCEL_BRANCH_URL);
+
+      if (allowedOrigins.has(origin)) {
         return cb(null, true);
       }
-      return cb(new Error('Not allowed by CORS'), false);
+
+      // Safe rejection: deny cross-origin access without generating an HTTP 500 error
+      return cb(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']

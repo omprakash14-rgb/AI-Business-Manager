@@ -15,7 +15,11 @@ const envSchema = z.object({
   DIRECT_URL: z.string().optional(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional()
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  // Vercel Deployment System Environment Variables
+  VERCEL_URL: z.string().optional(),
+  VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
+  VERCEL_BRANCH_URL: z.string().optional()
 });
 
 export type Env = z.infer<typeof envSchema>;
