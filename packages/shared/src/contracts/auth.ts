@@ -12,16 +12,16 @@ export const ROLE_LABELS: Record<Role, string> = {
   owner: 'Organization Owner',
   admin: 'Administrator',
   manager: 'Manager',
-  member: 'Member (Default)',
-  viewer: 'Viewer (Read-Only)'
+  member: 'Member',
+  viewer: 'Viewer (Default)'
 };
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
   owner: 'Full organization-level control and exclusive management of member roles.',
   admin: 'Operational administrative permissions across business modules (cannot assign or modify roles).',
   manager: 'Operational team and workflow management permissions (cannot assign or modify roles).',
-  member: 'Standard operational workspace access. Default role assigned to all new organization members.',
-  viewer: 'Read-only visibility across authorized business records without write or update permissions.'
+  member: 'Standard operational workspace access.',
+  viewer: 'Read-only visibility across authorized business records. Default role assigned to all new accounts.'
 };
 
 export const MembershipStatusSchema = z.enum(['active', 'invited', 'suspended']);
@@ -78,7 +78,7 @@ export type UpdateOrganizationInput = z.infer<typeof UpdateOrganizationInputSche
 
 export const InviteMemberInputSchema = z.object({
   email: z.string().trim().toLowerCase().email({ message: 'Valid email required' }),
-  role: AssignableRoleSchema.default('member')
+  role: AssignableRoleSchema.default('viewer')
 });
 export type InviteMemberInput = z.infer<typeof InviteMemberInputSchema>;
 

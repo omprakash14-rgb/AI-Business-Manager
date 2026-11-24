@@ -20,7 +20,7 @@ export function UserMenu() {
         .toUpperCase()
     : 'U';
 
-  const role = currentMembership?.role || 'Member';
+  const role = currentMembership?.role || 'Viewer';
 
   return (
     <>

@@ -873,6 +873,36 @@ class InMemoryRepository {
     return { organization, membership };
   }
 
+  async getFirstOrganization(): Promise<DbOrganization | null> {
+    for (const org of this.organizations.values()) {
+      if (org.status === 'active') {
+        return org;
+      }
+    }
+    return null;
+  }
+
+  async addMember(organizationId: string, userId: string, role: Role = 'viewer'): Promise<DbOrganizationMember> {
+    const existing = await this.getMembership(organizationId, userId);
+    if (existing) {
+      return existing;
+    }
+
+    const now = new Date().toISOString();
+    const membership: DbOrganizationMember = {
+      id: crypto.randomUUID(),
+      organizationId,
+      userId,
+      role: role !== 'owner' ? role : 'viewer',
+      status: 'active',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    this.members.set(membership.id, membership);
+    return membership;
+  }
+
   async findOrganizationById(id: string): Promise<DbOrganization | null> {
     return this.organizations.get(id) || null;
   }
@@ -995,7 +1025,7 @@ class InMemoryRepository {
       }
     }
 
-    const assignedRole: Role = data.role && data.role !== 'owner' ? data.role : 'member';
+    const assignedRole: Role = data.role && data.role !== 'owner' ? data.role : 'viewer';
 
     const invitation: DbInvitation = {
       id: crypto.randomUUID(),
@@ -1029,6 +1059,21 @@ class InMemoryRepository {
     return results;
   }
 
+  async findPendingInvitationByEmail(email: string): Promise<DbInvitation | null> {
+    const normalized = email.trim().toLowerCase();
+    const now = new Date();
+    for (const inv of this.invitations.values()) {
+      if (inv.email.trim().toLowerCase() === normalized && inv.status === 'pending') {
+        if (new Date(inv.expiresAt) <= now) {
+          inv.status = 'expired';
+          continue;
+        }
+        return inv;
+      }
+    }
+    return null;
+  }
+
   async findInvitationByTokenHash(tokenHash: string): Promise<DbInvitation | null> {
     for (const inv of this.invitations.values()) {
       if (inv.tokenHash === tokenHash) {
@@ -1054,7 +1099,7 @@ class InMemoryRepository {
     const user = await this.findUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const assignedRole: Role = inv.role && inv.role !== 'owner' ? inv.role : 'member';
+    const assignedRole: Role = inv.role && inv.role !== 'owner' ? inv.role : 'viewer';
 
     const existingMember = await this.getMembership(inv.organizationId, userId);
     if (existingMember) {

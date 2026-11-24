@@ -6,7 +6,7 @@ import {
 } from '@ai-business-manager/shared';
 import { hashPassword, verifyPassword } from '../core/security/password.js';
 import { generateSecureToken, hashToken } from '../core/security/tokens.js';
-import { repository } from '../db/index.js';
+import { repository, type DbOrganization, type DbOrganizationMember } from '../db/index.js';
 import { setSessionCookie, clearSessionCookie, requireAuth } from '../plugins/auth.js';
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
@@ -46,11 +46,39 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       fullName
     });
 
-    // Create default personal organization for new user
-    const { organization, membership } = await repository.createOrganization(
-      { name: `${fullName}'s Workspace` },
-      user.id
-    );
+    let organization: DbOrganization;
+    let membership: DbOrganizationMember;
+
+    // Check if user has an active pending invitation
+    const pendingInvitation = await repository.findPendingInvitationByEmail(email);
+
+    if (pendingInvitation) {
+      // User joins the invited organization with the assigned role (defaults to 'viewer')
+      const result = await repository.acceptInvitation(pendingInvitation.id, user.id);
+      membership = result.membership;
+      const org = await repository.findOrganizationById(membership.organizationId);
+      if (!org) {
+        throw new Error('Invited organization not found');
+      }
+      organization = org;
+    } else {
+      // Check if an organization already exists
+      const existingOrg = await repository.getFirstOrganization();
+
+      if (existingOrg) {
+        // Subsequent user account creation: join existing organization as 'viewer' by default
+        membership = await repository.addMember(existingOrg.id, user.id, 'viewer');
+        organization = existingOrg;
+      } else {
+        // First account created in system: founding organization setup (creator becomes owner)
+        const result = await repository.createOrganization(
+          { name: `${fullName}'s Workspace` },
+          user.id
+        );
+        organization = result.organization;
+        membership = result.membership;
+      }
+    }
 
     // Create authenticated session
     const rawToken = generateSecureToken();

@@ -107,7 +107,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                 <span className="text-[11px] text-slate-500">Role in Active Org</span>
                 <Badge variant="default" className="text-[10px] uppercase capitalize">
                   <Shield className="h-3 w-3 mr-1" />
-                  <span>{currentMembership?.role || 'Member'}</span>
+                  <span>{currentMembership?.role || 'Viewer'}</span>
                 </Badge>
               </div>
               <div className="flex items-center justify-between text-[11px] text-slate-500">

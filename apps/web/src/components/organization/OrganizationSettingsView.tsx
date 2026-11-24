@@ -72,7 +72,7 @@ export function OrganizationSettingsView() {
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<AssignableRole>('member');
+  const [inviteRole, setInviteRole] = useState<AssignableRole>('viewer');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [createdInviteToken, setCreatedInviteToken] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -1408,21 +1408,21 @@ export function OrganizationSettingsView() {
                       onChange={(e) => setInviteRole(e.target.value as AssignableRole)}
                       className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
-                      <option value="member">Member (Default) — Standard operational workspace access</option>
+                      <option value="viewer">Viewer (Default) — Read-only access without write permissions</option>
+                      <option value="member">Member — Standard operational workspace access</option>
                       <option value="manager">Manager — Operational team and workflow management</option>
                       <option value="admin">Administrator — Operational administrative permissions</option>
-                      <option value="viewer">Viewer — Read-only access without write permissions</option>
                     </select>
                   ) : (
                     <div className="space-y-1">
                       <input
                         type="text"
                         disabled
-                        value="Member (Default Role)"
+                        value="Viewer (Default Role)"
                         className="w-full rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-xs text-slate-600 font-medium cursor-not-allowed"
                       />
                       <span className="text-[10px] text-slate-500 block">
-                        Non-owner invitations automatically receive the default Member role. Only the Organization Owner can assign elevated roles.
+                        Non-owner invitations automatically receive the default Viewer role. Only the Organization Owner can assign elevated roles.
                       </span>
                     </div>
                   )}

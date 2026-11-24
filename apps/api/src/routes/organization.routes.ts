@@ -413,22 +413,22 @@ export async function organizationRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const callerRole = request.membership!.role;
-      let targetRole = parseResult.data.role || 'member';
+      let targetRole = parseResult.data.role || 'viewer';
 
-      // Rule: Only Owners can assign elevated roles (admin, manager, viewer).
-      // If an Admin creates an invitation, it is strictly forced to default 'member' role.
+      // Rule: Only Owners can assign elevated roles (admin, manager, member).
+      // If an Admin creates an invitation, it is strictly forced to default 'viewer' role.
       if (callerRole !== 'owner') {
-        if (targetRole !== 'member') {
+        if (targetRole !== 'viewer') {
           return reply.status(403).send({
             success: false,
             error: {
               code: 'FORBIDDEN',
-              message: 'Only the Organization Owner can assign elevated roles to invitations. Non-owner invitations must use the default Member role.'
+              message: 'Only the Organization Owner can assign elevated roles to invitations. Non-owner invitations must use the default Viewer role.'
             },
             timestamp: new Date().toISOString()
           });
         }
-        targetRole = 'member';
+        targetRole = 'viewer';
       }
 
       const { email } = parseResult.data;
