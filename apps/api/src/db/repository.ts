@@ -873,15 +873,6 @@ class InMemoryRepository {
     return { organization, membership };
   }
 
-  async getFirstOrganization(): Promise<DbOrganization | null> {
-    for (const org of this.organizations.values()) {
-      if (org.status === 'active') {
-        return org;
-      }
-    }
-    return null;
-  }
-
   async addMember(organizationId: string, userId: string, role: Role = 'viewer'): Promise<DbOrganizationMember> {
     const existing = await this.getMembership(organizationId, userId);
     if (existing) {
@@ -1098,6 +1089,12 @@ class InMemoryRepository {
 
     const user = await this.findUserById(userId);
     if (!user) throw new Error('User not found');
+
+    if (user.email.trim().toLowerCase() !== inv.email.trim().toLowerCase()) {
+      const err = new Error('This invitation was issued for a different email address') as Error & { statusCode?: number };
+      err.statusCode = 403;
+      throw err;
+    }
 
     const assignedRole: Role = inv.role && inv.role !== 'owner' ? inv.role : 'viewer';
 

@@ -141,3 +141,22 @@ export function requireRole(allowedRoles: Role[]) {
     }
   };
 }
+
+/**
+ * Guard: Blocks read-only 'viewer' memberships from performing state-mutating operations.
+ */
+export async function requireWriteAccess(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  await requireOrganization(request, reply);
+  if (reply.sent) return;
+
+  if (request.membership!.role === 'viewer') {
+    reply.status(403).send({
+      success: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Read-only Viewer accounts cannot create, modify, or delete organization records.'
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+}

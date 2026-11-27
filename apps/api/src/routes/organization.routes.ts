@@ -572,6 +572,17 @@ export async function organizationRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
+    if (request.user!.email.trim().toLowerCase() !== invitation.email.trim().toLowerCase()) {
+      return reply.status(403).send({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'This invitation was issued for a different email address'
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+
     try {
       const { membership } = await repository.acceptInvitation(invitation.id, request.user!.id);
       const org = await repository.findOrganizationById(membership.organizationId);
@@ -600,10 +611,12 @@ export async function organizationRoutes(app: FastifyInstance): Promise<void> {
         timestamp: new Date().toISOString()
       });
     } catch (err) {
-      return reply.status(400).send({
+      const statusCode = (err as { statusCode?: number }).statusCode === 403 ? 403 : 400;
+      const errorCode = statusCode === 403 ? 'FORBIDDEN' : 'ACCEPT_FAILED';
+      return reply.status(statusCode).send({
         success: false,
         error: {
-          code: 'ACCEPT_FAILED',
+          code: errorCode,
           message: err instanceof Error ? err.message : 'Could not accept invitation'
         },
         timestamp: new Date().toISOString()

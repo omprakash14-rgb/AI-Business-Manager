@@ -34,10 +34,10 @@ export function OrganizationSwitcher() {
           </div>
           <div className="flex flex-col text-left">
             <span className="font-semibold text-slate-900 leading-tight truncate max-w-[150px]">
-              {activeOrganization ? activeOrganization.name : 'Select Organization'}
+              {activeOrganization ? activeOrganization.name : 'No Organization'}
             </span>
             <span className="text-[10px] text-slate-500 leading-tight capitalize">
-              Role: {currentMembership ? currentMembership.role : 'None'}
+              Role: {currentMembership ? currentMembership.role : 'Viewer'}
             </span>
           </div>
           <ChevronDown className="h-3 w-3 text-slate-400 ml-1" />

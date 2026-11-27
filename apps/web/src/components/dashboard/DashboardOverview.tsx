@@ -69,9 +69,18 @@ export function DashboardOverview({
               Welcome back, {user?.fullName || 'User'}
             </h2>
             <p className="text-xs md:text-sm text-slate-600 max-w-2xl">
-              Currently operating in workspace <strong>{activeOrganization?.name}</strong> with role{' '}
-              <span className="capitalize font-semibold text-blue-600">{currentMembership?.role}</span>.
-              All operations are scoped to this organization with server-side authorization.
+              {activeOrganization ? (
+                <>
+                  Currently operating in workspace <strong>{activeOrganization.name}</strong> with role{' '}
+                  <span className="capitalize font-semibold text-blue-600">{currentMembership?.role || 'Viewer'}</span>.
+                  All operations are scoped to this organization with server-side authorization.
+                </>
+              ) : (
+                <>
+                  No active organization assigned. Your account currently has default{' '}
+                  <span className="font-semibold text-blue-600">Viewer</span> access. Accept an invitation token or create a workspace to begin collaborating.
+                </>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -91,7 +100,7 @@ export function DashboardOverview({
               className="gap-2 bg-blue-600 text-white"
             >
               <Building2 className="h-3.5 w-3.5" />
-              <span>Manage Team</span>
+              <span>{activeOrganization ? 'Manage Team' : 'Join or Create Org'}</span>
             </Button>
           </div>
         </div>
@@ -208,7 +217,7 @@ export function DashboardOverview({
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
                 <span className="text-slate-500">Access Control Model</span>
-                <span className="font-medium text-slate-800">Role-Based (Owner, Admin, Member) with owner guards</span>
+                <span className="font-medium text-slate-800">Role-Based (Owner, Admin, Manager, Member, Viewer) with owner guards</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-100">
                 <span className="text-slate-500">Database Schema</span>

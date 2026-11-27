@@ -46,14 +46,14 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       fullName
     });
 
-    let organization: DbOrganization;
-    let membership: DbOrganizationMember;
+    let organization: DbOrganization | null = null;
+    let membership: DbOrganizationMember | null = null;
 
-    // Check if user has an active pending invitation
+    // Only link an organization on registration if the user has a legitimate pending invitation.
+    // Uninvited accounts start without an organization (default Viewer / non-admin access).
     const pendingInvitation = await repository.findPendingInvitationByEmail(email);
 
     if (pendingInvitation) {
-      // User joins the invited organization with the assigned role (defaults to 'viewer')
       const result = await repository.acceptInvitation(pendingInvitation.id, user.id);
       membership = result.membership;
       const org = await repository.findOrganizationById(membership.organizationId);
@@ -61,23 +61,6 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         throw new Error('Invited organization not found');
       }
       organization = org;
-    } else {
-      // Check if an organization already exists
-      const existingOrg = await repository.getFirstOrganization();
-
-      if (existingOrg) {
-        // Subsequent user account creation: join existing organization as 'viewer' by default
-        membership = await repository.addMember(existingOrg.id, user.id, 'viewer');
-        organization = existingOrg;
-      } else {
-        // First account created in system: founding organization setup (creator becomes owner)
-        const result = await repository.createOrganization(
-          { name: `${fullName}'s Workspace` },
-          user.id
-        );
-        organization = result.organization;
-        membership = result.membership;
-      }
     }
 
     // Create authenticated session
@@ -88,17 +71,17 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     await repository.createSession({
       tokenHash,
       userId: user.id,
-      activeOrganizationId: organization.id,
+      activeOrganizationId: organization ? organization.id : null,
       expiresAt
     });
 
     setSessionCookie(reply, rawToken);
 
     await repository.createAuditLog({
-      organizationId: organization.id,
+      organizationId: organization ? organization.id : null,
       userId: user.id,
       action: 'auth.register',
-      metadata: JSON.stringify({ email }),
+      metadata: JSON.stringify({ email, invited: !!pendingInvitation }),
       ipAddress: request.ip,
       userAgent: request.headers['user-agent']
     });
@@ -112,30 +95,36 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         status: user.status,
         createdAt: user.createdAt
       },
-      activeOrganization: {
-        id: organization.id,
-        name: organization.name,
-        slug: organization.slug,
-        status: organization.status,
-        createdAt: organization.createdAt
-      },
-      currentMembership: {
-        id: membership.id,
-        organizationId: membership.organizationId,
-        userId: membership.userId,
-        role: membership.role,
-        status: membership.status,
-        createdAt: membership.createdAt
-      },
-      organizations: [
-        {
-          id: organization.id,
-          name: organization.name,
-          slug: organization.slug,
-          status: organization.status,
-          createdAt: organization.createdAt
-        }
-      ]
+      activeOrganization: organization
+        ? {
+            id: organization.id,
+            name: organization.name,
+            slug: organization.slug,
+            status: organization.status,
+            createdAt: organization.createdAt
+          }
+        : null,
+      currentMembership: membership
+        ? {
+            id: membership.id,
+            organizationId: membership.organizationId,
+            userId: membership.userId,
+            role: membership.role,
+            status: membership.status,
+            createdAt: membership.createdAt
+          }
+        : null,
+      organizations: organization
+        ? [
+            {
+              id: organization.id,
+              name: organization.name,
+              slug: organization.slug,
+              status: organization.status,
+              createdAt: organization.createdAt
+            }
+          ]
+        : []
     };
 
     return reply.status(201).send({

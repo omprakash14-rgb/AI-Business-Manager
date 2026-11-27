@@ -137,7 +137,7 @@ export function Sidebar({ currentModule, onSelectModule, collapsed, onToggleColl
             ? 'bg-blue-600 text-white shadow-xs'
             : 'text-slate-300 hover:bg-slate-800 hover:text-white'
             }`}
-          title={collapsed ? "Settings & Organization Admin" : undefined}
+          title={collapsed ? "Settings & Team" : undefined}
         >
           <Settings className="h-4 w-4 shrink-0 text-slate-400" />
           {!collapsed && (
@@ -150,10 +150,12 @@ export function Sidebar({ currentModule, onSelectModule, collapsed, onToggleColl
           )}
         </button>
 
-        {!collapsed && currentMembership && (
+        {!collapsed && (
           <div className="px-2 pt-2 text-[10px] text-slate-400 flex items-center justify-between">
             <span>Access Role:</span>
-            <span className="capitalize font-semibold text-slate-300">{currentMembership.role}</span>
+            <span className="capitalize font-semibold text-slate-300">
+              {currentMembership?.role || 'Viewer'}
+            </span>
           </div>
         )}
       </div>

@@ -12,7 +12,7 @@ import {
   CampaignType
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
-import { requireOrganization } from '../plugins/auth.js';
+import { requireOrganization, requireWriteAccess } from '../plugins/auth.js';
 
 export async function marketingRoutes(app: FastifyInstance): Promise<void> {
   // All Marketing routes require authenticated user and active organization context
@@ -80,7 +80,7 @@ export async function marketingRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/marketing/campaigns — Create a new campaign
-  app.post('/campaigns', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/campaigns', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateCampaignInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -140,7 +140,7 @@ export async function marketingRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/marketing/campaigns/:id — Update campaign
-  app.patch('/campaigns/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.patch('/campaigns/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -182,7 +182,7 @@ export async function marketingRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/marketing/campaigns/:id — Soft-delete campaign
-  app.delete('/campaigns/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/campaigns/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -224,7 +224,7 @@ export async function marketingRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/marketing/campaigns/:id/leads — Link lead to campaign
-  app.post('/campaigns/:id/leads', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/campaigns/:id/leads', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -266,7 +266,7 @@ export async function marketingRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/marketing/campaigns/:id/leads/:leadId — Disassociate lead
-  app.delete('/campaigns/:id/leads/:leadId', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/campaigns/:id/leads/:leadId', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id, leadId } = request.params as { id: string; leadId: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;

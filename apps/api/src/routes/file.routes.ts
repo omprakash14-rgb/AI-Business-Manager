@@ -6,11 +6,11 @@ import {
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
 import { storageService } from '../core/storage/local-storage.service.js';
-import { requireOrganization, requireRole } from '../plugins/auth.js';
+import { requireOrganization, requireRole, requireWriteAccess } from '../plugins/auth.js';
 
 export async function fileRoutes(app: FastifyInstance): Promise<void> {
   // POST /api/files/metadata — Register file metadata and acquire signed upload URL
-  app.post('/metadata', { preHandler: requireOrganization }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/metadata', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateFileMetadataInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({

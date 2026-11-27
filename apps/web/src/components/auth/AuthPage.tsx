@@ -74,7 +74,7 @@ export function AuthPage() {
           </CardTitle>
           <CardDescription className="text-xs text-slate-400">
             {isRegisterMode
-              ? 'Register with your credentials to initialize your business organization.'
+              ? 'Register with your credentials to create a Viewer account. You can join an invited organization or create one after signing in.'
               : 'Enter your credentials to access your authorized organizations.'}
           </CardDescription>
         </CardHeader>
@@ -143,7 +143,7 @@ export function AuthPage() {
                 </>
               ) : (
                 <>
-                  <span>{isRegisterMode ? 'Create Account & Workspace' : 'Sign In'}</span>
+                  <span>{isRegisterMode ? 'Create Account' : 'Sign In'}</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}

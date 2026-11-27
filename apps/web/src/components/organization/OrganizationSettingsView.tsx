@@ -49,6 +49,7 @@ import {
 } from '@ai-business-manager/shared';
 import { PaginationBar } from '@/components/shared/PaginationBar';
 import { SearchFilterBar } from '@/components/shared/SearchFilterBar';
+import { CreateOrganizationDialog } from '@/components/organization/CreateOrganizationDialog';
 
 type MemberItem = OrganizationMembershipDto & { user: UserDto };
 
@@ -83,6 +84,7 @@ export function OrganizationSettingsView() {
   const [isAcceptingToken, setIsAcceptingToken] = useState(false);
   const [acceptSuccessMsg, setAcceptSuccessMsg] = useState<string | null>(null);
   const [acceptErrorMsg, setAcceptErrorMsg] = useState<string | null>(null);
+  const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
 
   // Files tab state
   const [files, setFiles] = useState<FileMetadataDto[]>([]);
@@ -378,10 +380,89 @@ export function OrganizationSettingsView() {
     setTimeout(() => setCopiedToken(false), 2000);
   };
 
+  const renderAcceptInvitationCard = (hasActiveOrg: boolean) => (
+    <Card className="border-slate-200 bg-white shadow-xs">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+          <KeyRound className="h-4 w-4 text-emerald-600" />
+          <span>{hasActiveOrg ? 'Join Another Organization via Invitation Token' : 'Join an Organization via Invitation Token'}</span>
+        </CardTitle>
+        <CardDescription className="text-xs text-slate-500">
+          Have an invitation token sent to <strong>{user?.email}</strong> by an organization owner or administrator? Paste it here to join.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {acceptSuccessMsg && (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-800 flex items-center gap-2">
+            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>{acceptSuccessMsg}</span>
+          </div>
+        )}
+        {acceptErrorMsg && (
+          <div className="rounded-md border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{acceptErrorMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleAcceptToken} className="flex flex-col sm:flex-row gap-2 max-w-lg">
+          <input
+            type="text"
+            required
+            placeholder="Paste invitation token here..."
+            value={acceptTokenInput}
+            onChange={(e) => setAcceptTokenInput(e.target.value)}
+            className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <Button type="submit" size="sm" disabled={isAcceptingToken || !acceptTokenInput.trim()}>
+            {isAcceptingToken ? 'Joining...' : 'Accept & Join'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+
   if (!activeOrganization) {
     return (
-      <div className="p-8 text-center text-slate-500">
-        No active organization selected. Please create or switch to an organization.
+      <div className="space-y-6">
+        <Card className="border-slate-200 bg-white shadow-xs">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base font-semibold text-slate-900">
+                      No Active Organization
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                      Viewer
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs text-slate-500 mt-0.5">
+                    Your account has default Viewer access and is not yet a member of an organization.
+                  </CardDescription>
+                </div>
+              </div>
+              <Button size="sm" onClick={() => setShowCreateOrgModal(true)} className="gap-1.5 self-start sm:self-auto">
+                <Plus className="h-3.5 w-3.5" />
+                <span>Create Organization</span>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="text-xs text-slate-600">
+            To protect multi-tenant workspace isolation, new registrations are not automatically added to an organization. Join an existing organization using an invitation token below, or create a new workspace.
+          </CardContent>
+        </Card>
+
+        {renderAcceptInvitationCard(false)}
+
+        <CreateOrganizationDialog
+          isOpen={showCreateOrgModal}
+          onClose={() => setShowCreateOrgModal(false)}
+        />
       </div>
     );
   }
@@ -613,8 +694,8 @@ export function OrganizationSettingsView() {
                             >
                               <option value="admin">Administrator</option>
                               <option value="manager">Manager</option>
-                              <option value="member">Member (Default)</option>
-                              <option value="viewer">Viewer (Read-Only)</option>
+                              <option value="member">Member</option>
+                              <option value="viewer">Viewer (Default / Read-Only)</option>
                             </select>
                           ) : (
                             <Badge
@@ -687,15 +768,15 @@ export function OrganizationSettingsView() {
                   </p>
                 </div>
                 <div className="p-2.5 rounded bg-white border border-slate-200/60 shadow-2xs">
-                  <span className="font-semibold text-blue-700">Member (Default Role)</span>
+                  <span className="font-semibold text-slate-900">Member</span>
                   <p className="mt-1 text-slate-500 leading-relaxed">
-                    Standard operational workspace access. Automatically assigned to all newly registered or invited organization members.
+                    Standard operational workspace access across assigned business modules. Cannot assign or modify member roles.
                   </p>
                 </div>
                 <div className="p-2.5 rounded bg-white border border-slate-200/60 shadow-2xs md:col-span-2">
-                  <span className="font-semibold text-slate-700">Viewer (Read-Only)</span>
+                  <span className="font-semibold text-blue-700">Viewer (Default Role — Read-Only)</span>
                   <p className="mt-1 text-slate-500 leading-relaxed">
-                    Read-only visibility across authorized business records without write, create, or update permissions.
+                    Read-only visibility across authorized business records without write, create, or update permissions. Default role assigned to newly registered accounts and non-owner invitations.
                   </p>
                 </div>
               </div>
@@ -807,45 +888,7 @@ export function OrganizationSettingsView() {
           )}
 
           {/* Card: Accept an Invitation Token */}
-          <Card className="border-slate-200 bg-white shadow-xs">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-emerald-600" />
-                <span>Join Another Organization via Invitation Token</span>
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Have an invitation token sent by another business administrator? Paste it here to join.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {acceptSuccessMsg && (
-                <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-800 flex items-center gap-2">
-                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>{acceptSuccessMsg}</span>
-                </div>
-              )}
-              {acceptErrorMsg && (
-                <div className="rounded-md border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                  <span>{acceptErrorMsg}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleAcceptToken} className="flex flex-col sm:flex-row gap-2 max-w-lg">
-                <input
-                  type="text"
-                  required
-                  placeholder="Paste invitation token here..."
-                  value={acceptTokenInput}
-                  onChange={(e) => setAcceptTokenInput(e.target.value)}
-                  className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                <Button type="submit" size="sm" disabled={isAcceptingToken || !acceptTokenInput.trim()}>
-                  {isAcceptingToken ? 'Joining...' : 'Accept & Join'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          {renderAcceptInvitationCard(true)}
         </div>
       )}
 

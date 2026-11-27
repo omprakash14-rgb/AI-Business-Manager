@@ -12,7 +12,7 @@ import {
   QuotationStatus
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
-import { requireOrganization } from '../plugins/auth.js';
+import { requireOrganization, requireWriteAccess } from '../plugins/auth.js';
 
 export async function salesRoutes(app: FastifyInstance): Promise<void> {
   // All Sales routes require authenticated user and active organization context
@@ -63,7 +63,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/sales/opportunities — Create opportunity
-  app.post('/opportunities', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/opportunities', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateOpportunityInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -124,6 +124,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   // PATCH /api/sales/opportunities/:id — Update opportunity fields
   app.patch(
     '/opportunities/:id',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const parseResult = UpdateOpportunityInputSchema.safeParse(request.body);
@@ -172,6 +173,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   // PATCH /api/sales/opportunities/:id/stage — Transition opportunity stage (with win/loss tracking)
   app.patch(
     '/opportunities/:id/stage',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const parseResult = UpdateOpportunityStageInputSchema.safeParse(request.body);
@@ -236,6 +238,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/sales/opportunities/:id — Soft-delete opportunity
   app.delete(
     '/opportunities/:id',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const orgId = request.organization!.id;
@@ -313,7 +316,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/sales/quotations — Create quotation with line items
-  app.post('/quotations', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/quotations', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateQuotationInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -374,6 +377,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   // PATCH /api/sales/quotations/:id/status — Transition quotation status
   app.patch(
     '/quotations/:id/status',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const parseResult = UpdateQuotationStatusInputSchema.safeParse(request.body);
@@ -422,6 +426,7 @@ export async function salesRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/sales/quotations/:id — Soft delete quotation
   app.delete(
     '/quotations/:id',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const orgId = request.organization!.id;

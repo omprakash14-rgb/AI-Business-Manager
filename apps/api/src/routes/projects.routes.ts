@@ -20,7 +20,7 @@ import {
   TaskPriority
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
-import { requireOrganization } from '../plugins/auth.js';
+import { requireOrganization, requireWriteAccess } from '../plugins/auth.js';
 
 export async function projectRoutes(app: FastifyInstance): Promise<void> {
   // All Project Management routes require authenticated user and active organization context
@@ -86,7 +86,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/projects — Create a new project
-  app.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateProjectInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -146,7 +146,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/projects/:id — Update project
-  app.patch('/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.patch('/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -188,7 +188,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/projects/:id — Soft-delete project
-  app.delete('/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -230,7 +230,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/projects/:id/members — Add or update project member
-  app.post('/:id/members', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/:id/members', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
 
@@ -261,7 +261,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/projects/:id/members/:userId — Remove project member
-  app.delete('/:id/members/:userId', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/:id/members/:userId', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id, userId: targetUserId } = request.params as { id: string; userId: string };
     const orgId = request.organization!.id;
 
@@ -302,7 +302,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/projects/:id/milestones — Create milestone
-  app.post('/:id/milestones', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/:id/milestones', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
 
@@ -333,7 +333,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/projects/milestones/:id — Update milestone
-  app.patch('/milestones/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.patch('/milestones/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
 
@@ -364,7 +364,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/projects/milestones/:id — Soft-delete milestone
-  app.delete('/milestones/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/milestones/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
 
@@ -442,7 +442,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/projects/tasks — Create a task or subtask
-  app.post('/tasks', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/tasks', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateTaskInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -502,7 +502,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/projects/tasks/:id — Update task details
-  app.patch('/tasks/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.patch('/tasks/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -544,7 +544,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/projects/tasks/:id/status — Fast status update (for Kanban and quick toggles)
-  app.patch('/tasks/:id/status', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.patch('/tasks/:id/status', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -586,7 +586,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/projects/tasks/:id — Soft-delete task
-  app.delete('/tasks/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/tasks/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;
@@ -633,7 +633,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/projects/:id/comments — Post a comment on project or task
-  app.post('/:id/comments', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/:id/comments', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id: projectId } = request.params as { id: string };
     const orgId = request.organization!.id;
     const authorId = request.user!.id;
@@ -665,7 +665,7 @@ export async function projectRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/projects/comments/:id — Delete comment
-  app.delete('/comments/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/comments/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;

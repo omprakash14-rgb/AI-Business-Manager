@@ -13,7 +13,7 @@ import {
   UpdateLeaveStatusInputSchema
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
-import { requireOrganization, requireRole } from '../plugins/auth.js';
+import { requireOrganization, requireRole, requireWriteAccess } from '../plugins/auth.js';
 
 export async function hrRoutes(app: FastifyInstance): Promise<void> {
   // All HR routes require an authenticated session and active organization context
@@ -534,7 +534,7 @@ export async function hrRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/hr/attendance — Record attendance
-  app.post('/attendance', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/attendance', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = RecordAttendanceInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -682,7 +682,7 @@ export async function hrRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/hr/leaves — Submit a leave request
-  app.post('/leaves', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/leaves', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateLeaveRequestInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -815,7 +815,7 @@ export async function hrRoutes(app: FastifyInstance): Promise<void> {
   );
 
   // DELETE /api/hr/leaves/:id — Cancel pending leave request
-  app.delete('/leaves/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.delete('/leaves/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const orgId = request.organization!.id;
     const userId = request.user!.id;

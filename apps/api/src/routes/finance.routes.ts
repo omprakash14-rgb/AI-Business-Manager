@@ -20,7 +20,7 @@ import {
   InvoiceStatus
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
-import { requireOrganization, requireRole } from '../plugins/auth.js';
+import { requireOrganization, requireRole, requireWriteAccess } from '../plugins/auth.js';
 
 export async function financeRoutes(app: FastifyInstance): Promise<void> {
   // All Finance routes require authenticated session & active organization context
@@ -189,7 +189,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/finance/transactions — Log income or expense
-  app.post('/transactions', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/transactions', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateTransactionInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -244,6 +244,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   // PATCH /api/finance/transactions/:id — Update transaction
   app.patch(
     '/transactions/:id',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const parseResult = UpdateTransactionInputSchema.safeParse(request.body);
@@ -279,6 +280,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/finance/transactions/:id — Delete transaction
   app.delete(
     '/transactions/:id',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const orgId = request.organization!.id;
@@ -342,7 +344,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/finance/invoices — Create invoice with line items
-  app.post('/invoices', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/invoices', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateInvoiceInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -375,6 +377,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   // POST /api/finance/invoices/from-quotation/:quotationId — Lead-to-cash quotation conversion
   app.post(
     '/invoices/from-quotation/:quotationId',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { quotationId: string } }>, reply: FastifyReply) => {
       const { quotationId } = request.params;
       const orgId = request.organization!.id;
@@ -420,6 +423,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   // PATCH /api/finance/invoices/:id/status — Transition invoice status
   app.patch(
     '/invoices/:id/status',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const { status } = request.body as { status: string };
@@ -459,6 +463,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/finance/invoices/:id — Soft delete invoice
   app.delete(
     '/invoices/:id',
+    { preHandler: requireWriteAccess },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
       const orgId = request.organization!.id;
@@ -516,7 +521,7 @@ export async function financeRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/finance/payments — Record customer payment
-  app.post('/payments', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/payments', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreatePaymentInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({

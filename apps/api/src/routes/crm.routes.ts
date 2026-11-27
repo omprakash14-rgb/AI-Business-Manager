@@ -14,7 +14,7 @@ import {
   UpdateCrmActivityInputSchema
 } from '@ai-business-manager/shared';
 import { repository } from '../db/index.js';
-import { requireOrganization, requireRole } from '../plugins/auth.js';
+import { requireOrganization, requireWriteAccess } from '../plugins/auth.js';
 
 export async function crmRoutes(app: FastifyInstance): Promise<void> {
   // All CRM routes require authenticated user and active organization
@@ -52,7 +52,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/crm/leads — Create new lead
-  app.post('/leads', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/leads', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateLeadInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -134,7 +134,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/crm/leads/:id — Update lead
-  app.patch('/leads/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.patch('/leads/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const parseResult = UpdateLeadInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -186,7 +186,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/crm/leads/:id/assign — Assign lead to user
-  app.post('/leads/:id/assign', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.post('/leads/:id/assign', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const parseResult = AssignLeadInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -242,7 +242,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/crm/leads/:id/convert — Convert lead into customer records
-  app.post('/leads/:id/convert', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.post('/leads/:id/convert', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const parseResult = ConvertLeadInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -275,7 +275,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/crm/leads/:id — Soft-delete lead
-  app.delete('/leads/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.delete('/leads/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const orgId = request.organization!.id;
     const userId = request.user!.id;
     const leadId = request.params.id;
@@ -340,7 +340,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/crm/accounts — Create account
-  app.post('/accounts', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/accounts', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateAccountInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -387,7 +387,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/crm/accounts/:id — Update account
-  app.patch('/accounts/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.patch('/accounts/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const parseResult = UpdateAccountInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -422,7 +422,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/crm/accounts/:id — Soft-delete account
-  app.delete('/accounts/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.delete('/accounts/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const orgId = request.organization!.id;
     const userId = request.user!.id;
     const accountId = request.params.id;
@@ -475,7 +475,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/crm/contacts — Create contact
-  app.post('/contacts', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/contacts', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateContactInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -522,7 +522,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/crm/contacts/:id — Update contact
-  app.patch('/contacts/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.patch('/contacts/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const parseResult = UpdateContactInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -557,7 +557,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/crm/contacts/:id — Soft-delete contact
-  app.delete('/contacts/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.delete('/contacts/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const orgId = request.organization!.id;
     const userId = request.user!.id;
     const contactId = request.params.id;
@@ -614,7 +614,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/crm/activities — Log an activity or follow-up
-  app.post('/activities', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/activities', { preHandler: requireWriteAccess }, async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = CreateCrmActivityInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -663,7 +663,7 @@ export async function crmRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/crm/activities/:id — Update activity or mark complete
-  app.patch('/activities/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.patch('/activities/:id', { preHandler: requireWriteAccess }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const parseResult = UpdateCrmActivityInputSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.status(400).send({
